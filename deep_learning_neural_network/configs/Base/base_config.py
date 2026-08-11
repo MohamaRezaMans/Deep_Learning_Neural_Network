@@ -14,7 +14,7 @@ class BaseConfig:
         activation = 'lrelu' # Makes the network activation function nonlinear.
         optimizer = 'adam' # Optimum algorithm: Calculation of weight changes is based on the gradient.
         weight_decay = 0.0001
-        loss = "mse" # Error calculation function
+        loss = "mse" # loss calculation function
         #loss_beta = 1
 
         class Trainer:
