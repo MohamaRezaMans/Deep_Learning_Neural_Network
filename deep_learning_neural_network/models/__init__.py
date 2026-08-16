@@ -1,2 +1,1 @@
-from .CNN_Network import CNNNetwork
-from .LSTM_Network import LSTMNetwork
+from .MLP_Network import MLPNetwork

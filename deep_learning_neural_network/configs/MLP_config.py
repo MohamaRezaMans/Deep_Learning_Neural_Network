@@ -1,11 +1,10 @@
 from deep_learning_neural_network.configs import BaseConfig
-
+import torch
 
 class MLPConfig(BaseConfig):
     seed = 42  # Random seed for reproducibility
-    device = 'cuda'
-
-    class Training(BaseConfig.Training):
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    class training(BaseConfig.training):
         hidden_dims = [16, 32]
         epochs = 30
         batch_size = 128
