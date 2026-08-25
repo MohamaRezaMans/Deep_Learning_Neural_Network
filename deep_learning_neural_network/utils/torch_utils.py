@@ -1,7 +1,7 @@
-import torch
 import torch.nn as nn  # nn : loss functions and activation functions
 from deep_learning_neural_network.utils import IAMLoss
 from deep_learning_neural_network.utils import AngularMarginLoss
+import torch
 
 def get_activation(name: str) -> nn.Module:
     name = name.lower()
@@ -14,16 +14,28 @@ def get_activation(name: str) -> nn.Module:
     raise ValueError(f"Unknown activation '{name}'")
 
 def get_loss(name: str, **kwargs) -> nn.Module:
-    '''
+    """
     Map a string name to a PyTorch loss module.
     Extra keyword args (in kwargs) are forwarded to the loss constructor.
-    '''
+    """
     name = name.lower()
     if name == "mse": return nn.MSELoss(**kwargs)
     if name == "smooth_l1": return nn.SmoothL1Loss(**kwargs)
     if name == "l1": return nn.L1Loss(**kwargs)
-    if name == "crossentropy": return nn.CrossEntropyLoss(**kwargs)
+    if name == "cross_entropy": return nn.CrossEntropyLoss(**kwargs)
     if name == "iam": return IAMLoss(**kwargs)
-    if name == "angularmargin": return AngularMarginLoss(**kwargs)
+    if name == "angular_margin": return AngularMarginLoss(**kwargs)
     raise ValueError(f"Unknown loss '{name}'")
+
+def get_optimizer(name: str, params, lr: float, **kwargs) -> torch.optim.Optimizer:
+
+    name = name.lower()
+    if name == "sgd":
+        return torch.optim.SGD(params, lr=lr, **kwargs)
+    if name == "adam":
+        return torch.optim.Adam(params, lr=lr, **kwargs)
+    if name == "adamw":
+        return torch.optim.AdamW(params, lr=lr, **kwargs)
+
+    raise ValueError(f"Unknown optimizer '{name}'")
 

@@ -9,7 +9,7 @@ from deep_learning_neural_network.configs import MLPConfig
 from deep_learning_neural_network.utils import get_args, set_seed, update_cfg_from_args, class_to_dict
 from deep_learning_neural_network.utils import get_log_dir, split_dataset, get_dataloader, compute_normalization_stats, save_model_jit
 from deep_learning_neural_network.utils import get_loss, get_optimizer
-# from deep_learning_neural_network.pipeline import Trainer
+from deep_learning_neural_network.pipeline import Trainer
 from deep_learning_neural_network import DEEP_LEARNING_NEURAL_NETWORK_RESOURCES_DIR
 
 def load_data(data_dir: str):
@@ -93,3 +93,48 @@ if __name__ == "__main__":
     # loss function
     loss_fn = get_loss(cfg.training.loss, reduction="mean")
 
+    # Optimizer
+    optimizer = get_optimizer(cfg.training.optimizer, mlp_model.parameters(),
+                              lr=cfg.training.learning_rate, weight_decay=cfg.training.weight_decay)
+
+    # Scheduler
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,
+        mode="min",  # because you monitor RMSE
+        factor=0.5,  # LR *= factor when plateau
+        patience=80,  # epochs with no improvement before reducing LR
+        min_lr=1e-4,
+    )
+
+# Train the model
+    trainer = Trainer(
+        mlp_model,
+        train_dl,
+        val_dl,
+        optimizer,
+        loss_fn,
+        trainer_name=cfg.training.trainer.trainer_name,
+        epochs=cfg.training.epochs,
+        scheduler=scheduler,
+        device=cfg.device,
+        noise_std=cfg.training.trainer.noise.noise_std,
+        noise_frac=cfg.training.trainer.noise.noise_frac,
+        metrics=cfg.training.trainer.metrics,
+        monitor=cfg.training.trainer.monitor,
+        mode=cfg.training.trainer.mode,
+        early_stopping=cfg.training.trainer.early_stopping,
+        patience=cfg.training.trainer.patience,
+        log_dir=cfg.logger.log_dir
+    )
+
+    best_model = trainer.train() # Note: best_model is stored on CPU for portability
+
+    # save model as a jit file
+    model_path = save_model_jit(best_model, cfg.logger.log_dir, cfg.logger.save_model_label)
+
+    # save config
+    config_path = os.path.join(cfg.logger.log_dir, "config.json")
+    with open(config_path, "w", encoding="utf-8") as f:
+        json.dump(cfg_dict, f, indent=4)
+
+    print(f"config saved to {config_path}")

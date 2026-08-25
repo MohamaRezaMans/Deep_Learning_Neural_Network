@@ -25,26 +25,25 @@ class IAMLoss(nn.Module):
 
         # normalize features and weights 
         f = F.normalize(features, dim=1)
-        W = F.normalize(weights, dim=1)
+        w = F.normalize(weights, dim=1)
 
         # Cosine
-        cos_theta = torch.matmul(f, W.t())
+        cos_theta = torch.matmul(f, w.t()) # w.t() -> w Transpose # matmul -> matric cross
 
         # scaled angle 
-        scaled = self.s * cos_theta
-        exp_scaled = torch.exp(scaled) # (B, C)
+        exp_scaled = torch.exp(self.s * cos_theta) # (B, C)
 
         # denominator 
         denom = exp_scaled.sum(dim=1) # (B,)
 
         # mask for correct class
-        mask = F.one_hot(targets, num_classes=W.size(0)).bool() # (B, C)
+        mask = F.one_hot(targets, num_classes=w.size(0)).bool() # (B, C)
 
         # remove correct class
         wrong_scaled = exp_scaled.masked_fill(mask, 0.0) # (B, C)
 
         # numerator
-        numer = wrong_scaled.sum(dim=1)/(W.size(0) - 1)
+        numer = wrong_scaled.sum(dim=1)/(w.size(0) - 1)
 
         iam = torch.log(numer/denom) # (B,)
 

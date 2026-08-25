@@ -26,7 +26,6 @@ class AngularMarginLoss(nn.Module):
         cos_theta = torch.matmul(f, W.t()) # (B, C)
 
         # Mask for correct classes
-        batch_size = features.size(0)
         mask = torch.zeros_like(cos_theta)
         mask.scatter_(1, targets.view(-1, 1).long(), 1.0)
 
