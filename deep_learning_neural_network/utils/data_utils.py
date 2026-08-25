@@ -98,6 +98,7 @@ def get_dataloader(
 
     return train_dl, val_dl
 
+
 def compute_normalization_stats(train_ds: Dataset) -> Tuple[Tensor, Tensor]:
     """
     Compute feature-wise mean and standard deviation using ONLY the training data.
@@ -118,3 +119,26 @@ def compute_normalization_stats(train_ds: Dataset) -> Tuple[Tensor, Tensor]:
     std = torch.clamp(std, min=1e-8)
 
     return mean, std
+
+
+def save_model_jit(model, log_dir: str, label: str = "JIT_model") -> str:
+    """
+    Save a PyTorch model as a TorchScript (JIT) file.
+
+    """
+
+    os.makedirs(log_dir, exist_ok=True)
+
+    model = copy.deepcopy(model).to("cpu").eval()
+    model_path = os.path.join(log_dir, f"{label}.pt")
+
+    # save as jit
+    try:
+        scripted = torch.jit.script(model)
+        scripted.save(model_path)
+        print(f"Model saved to {model_path}")
+
+    except Exception as e:
+        raise RuntimeError(f"Error scripting model for export. ") from e
+
+    return model_path

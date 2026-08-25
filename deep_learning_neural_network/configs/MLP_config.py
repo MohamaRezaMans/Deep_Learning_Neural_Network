@@ -37,7 +37,7 @@ class MLPConfig(BaseConfig):
     class logger(BaseConfig.logger):
         train_label = 'MLP'
         save_model_label = "MLP_JIT_model"
-        log_dir = -1
+        log_dir = -1 # Directory to save logs (-1 means use default location)
 
         experiment = "mlp_training"
         dataset = "Life_Expectancy_Data"
