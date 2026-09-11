@@ -1,6 +1,4 @@
 import torch.nn as nn  # nn : loss functions and activation functions
-from deep_learning_neural_network.utils import IAMLoss
-from deep_learning_neural_network.utils import AngularMarginLoss
 import torch
 
 def get_activation(name: str) -> nn.Module:
@@ -23,8 +21,8 @@ def get_loss(name: str, **kwargs) -> nn.Module:
     if name == "smooth_l1": return nn.SmoothL1Loss(**kwargs)
     if name == "l1": return nn.L1Loss(**kwargs)
     if name == "cross_entropy": return nn.CrossEntropyLoss(**kwargs)
-    if name == "iam": return IAMLoss(**kwargs)
-    if name == "angular_margin": return AngularMarginLoss(**kwargs)
+    # if name == "iam": return IAMLoss(**kwargs)
+    # if name == "angular_margin": return AngularMarginLoss(**kwargs)
     raise ValueError(f"Unknown loss '{name}'")
 
 def get_optimizer(name: str, params, lr: float, **kwargs) -> torch.optim.Optimizer:
