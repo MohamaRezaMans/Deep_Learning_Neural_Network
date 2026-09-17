@@ -142,3 +142,7 @@ def save_model_jit(model, log_dir: str, label: str = "JIT_model") -> str:
         raise RuntimeError(f"Error scripting model for export. ") from e
 
     return model_path
+
+def count_trainable_params(model: torch.nn.Module) -> int:
+    """Returns the total number of trainable parameters (weights + biases)."""
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
