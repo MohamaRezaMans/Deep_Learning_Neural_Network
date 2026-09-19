@@ -6,11 +6,10 @@ import torch
 from torchvision import datasets, transforms
 from torch.utils.data import Dataset, DataLoader
 
-
 from deep_learning_neural_network.models import MLPNetwork, AutoencoderNetwork
 from deep_learning_neural_network.configs import AutoencoderConfig
 from deep_learning_neural_network.utils import get_args, set_seed, update_cfg_from_args, class_to_dict
-from deep_learning_neural_network.utils import get_dataloader, get_log_dir, save_model_jit, count_trainable_params
+from deep_learning_neural_network.utils import get_dataloader, get_log_dir, save_model_jit, count_trainable_params, compute_normalization_stats_dataloader
 from deep_learning_neural_network.utils import get_loss, get_optimizer
 from deep_learning_neural_network.pipeline import Trainer
 from deep_learning_neural_network import DEEP_LEARNING_NEURAL_NETWORK_RESOURCES_DIR
@@ -98,8 +97,68 @@ if __name__ == "__main__":
     # load data
     image_folder = os.path.join(DEEP_LEARNING_NEURAL_NETWORK_RESOURCES_DIR, "data")
     train_ds, val_ds = load_dataset(image_folder)
+
     MNIST_train_ds = MNISTDataset(train_ds)
     MNIST_val_ds = MNISTDataset(val_ds)
 
     # get data loaders
+    # train_dl, val_dl = get_dataloader(train_ds, val_ds, cfg.training.batch_size)
     MNIST_train_dl, MNIST_val_dl = get_dataloader(MNIST_train_ds, MNIST_val_ds, cfg.training.autoencoder_batch_size)
+
+    # load model
+    autoencoder_model = AutoencoderNetwork(
+        num_inputs=MNIST_train_ds[0][0].numel(),
+        latent_dim=cfg.training.latent_size,
+        encoder_hidden_dim=cfg.training.encoder_hidden_dims,
+        decoder_hidden_dim=cfg.training.decoder_hidden_dims,
+        activation=cfg.training.activation,
+    )
+
+    # loss function
+    loss_fn = get_loss(cfg.training.autoencoder_loss, reduction="mean")
+    # Optimizer
+    optimizer = get_optimizer(cfg.training.optimizer, autoencoder_model.parameters(),
+                              lr=cfg.training.learning_rate, weight_decay=cfg.training.weight_decay)
+
+    # Scheduler
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,
+        mode="min",  # because you monitor RMSE
+        factor=0.5,  # LR *= factor when plateau
+        patience=80,  # epochs with no improvement before reducing LR
+        min_lr=1e-4,
+    )
+
+    trainer = Trainer(
+        autoencoder_model,
+        MNIST_train_dl,
+        MNIST_val_dl,
+        optimizer,
+        loss_fn,
+        trainer_name=cfg.training.trainer.autoencoder_trainer_name,
+        epochs=cfg.training.epochs,
+        scheduler=scheduler,
+        device=cfg.device,
+        noise_std=cfg.training.trainer.noise.autoencoder_noise_std,
+        noise_frac=cfg.training.trainer.noise.autoencoder_noise_frac,
+        metrics=cfg.training.trainer.autoencoder_metrics,
+        monitor=cfg.training.trainer.autoencoder_monitor,
+        mode=cfg.training.trainer.autoencoder_mode,
+        early_stopping=cfg.training.trainer.early_stopping,
+        patience=cfg.training.trainer.autoencoder_patience,
+        enable_plots=cfg.training.trainer.enable_plots,
+        log_dir=cfg.logger.log_dir
+    )
+
+    print("Starting autoencoder training...")
+    best_model = trainer.train() # Note: best_model is stored on CPU for portability
+
+    # save model as a jit file
+    autoencoder_model_path = save_model_jit(best_model, cfg.logger.log_dir, cfg.logger.autoencoder_save_model_label)
+
+    # save config
+    config_path = os.path.join(cfg.logger.log_dir, "config.json")
+    with open(config_path, "w", encoding="utf-8") as f:
+        json.dump(cfg_dict, f, indent=4)
+
+    print(f"config saved to {config_path}")
