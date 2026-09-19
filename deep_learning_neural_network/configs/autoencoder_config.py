@@ -42,10 +42,6 @@ class AutoencoderConfig(BaseConfig):
                 classifier_noise_std = 0.0 # Standard deviation of the Gaussian noise to add
                 classifier_noise_frac = 0.0 # Fraction of samples that will receive noise perturbation
 
-    class evaluation(BaseConfig.evaluation):
-        load_run = -1
-        load_autoencoder = -1 # "/home/mehtimans/deep_learning_pipeline/logs/Autoencoder/2026-04-01_01-37-32_/JIT_model.pt"
-
     class logger(BaseConfig.logger):
         train_label = 'Autoencoder'
         autoencoder_save_model_label = "Autoencoder_JIT_model"
