@@ -4,12 +4,12 @@ from typing import Tuple
 
 import torch
 from torchvision import datasets, transforms
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
-from deep_learning_neural_network.models import MLPNetwork, AutoencoderNetwork
+from deep_learning_neural_network.models import AutoencoderNetwork
 from deep_learning_neural_network.configs import AutoencoderConfig
 from deep_learning_neural_network.utils import get_args, set_seed, update_cfg_from_args, class_to_dict
-from deep_learning_neural_network.utils import get_dataloader, get_log_dir, save_model_jit, count_trainable_params, compute_normalization_stats_dataloader
+from deep_learning_neural_network.utils import get_dataloader, get_log_dir, save_model_jit
 from deep_learning_neural_network.utils import get_loss, get_optimizer
 from deep_learning_neural_network.pipeline import Trainer
 from deep_learning_neural_network import DEEP_LEARNING_NEURAL_NETWORK_RESOURCES_DIR
