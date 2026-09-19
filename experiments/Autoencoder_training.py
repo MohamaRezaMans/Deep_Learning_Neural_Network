@@ -123,9 +123,9 @@ if __name__ == "__main__":
     # Scheduler
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer,
-        mode="min",  # because you monitor RMSE
-        factor=0.5,  # LR *= factor when plateau
-        patience=80,  # epochs with no improvement before reducing LR
+        mode="min",
+        factor=0.5,
+        patience=80,
         min_lr=1e-4,
     )
 
